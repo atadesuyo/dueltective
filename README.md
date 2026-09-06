@@ -57,3 +57,22 @@ npm run selftest     # 打包真实逻辑并自动模拟两位玩家完整对局
 ```
 
 角色知识库位于 `lib/server/knowledge.ts`（守望先锋 + 街头霸王 6），可运行 `node scripts/fetch-wiki.mjs` 从 fandom wiki 抓取并合并词条。API 地址可通过 `DEEPSEEK_API_BASE` 覆盖。
+
+## 无需 OpenAI Sites 的部署（Cloudflare Workers + D1）
+
+不依赖 ChatGPT / OpenAI Sites，直接部署到你自己的 Cloudflare 账号：
+
+```sh
+# 一次性准备
+npm ci
+npx wrangler login                        # 登录 Cloudflare
+npx wrangler d1 create dueltective-db     # 创建 D1，记下返回的 database_id
+
+# 一键构建 + 建表 + 部署
+CLOUDFLARE_D1_DATABASE_ID=你的database_id npm run deploy:cloudflare
+
+# 可选：设置 DeepSeek 密钥以启用 AI 出题/裁判
+npx wrangler secret put DEEPSEEK_API_KEY
+```
+
+部署脚本会依次：把 `database_id` 注入构建配置 → `vinext build` → 把 `drizzle/` 迁移应用到远程 D1 → `wrangler deploy`。部署完成后在 Cloudflare 控制台把自定义域名绑定到这个 Worker 即可。

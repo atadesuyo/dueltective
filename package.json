@@ -14,7 +14,8 @@
     "db:generate": "drizzle-kit generate",
     "backend:build": "esbuild backend/entry.ts --bundle --platform=node --format=esm --outfile=backend/game.bundle.mjs --alias:cloudflare:workers=./backend/cloudflare-workers-shim.mjs",
     "backend": "npm run backend:build && node backend/server.mjs",
-    "selftest": "npm run backend:build && node scripts/selftest.mjs"
+    "selftest": "npm run backend:build && node scripts/selftest.mjs",
+    "deploy:cloudflare": "node scripts/deploy-cloudflare.mjs"
   },
   "dependencies": {
     "react": "19.2.6",
