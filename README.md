@@ -46,3 +46,14 @@ The response DTO is projected separately for each player. Private Question event
 ## Validation
 
 Two independent sessions cover room membership, mandatory ASK-before-GUESS, public answer sync, Private Question isolation, Private Answer redaction, UNKNOWN turn consumption, both automatic timeout transitions, three-life loss, rematch resets, and alternating first player. TypeScript and production builds are checked. A live DeepSeek request previously verified credential, model, JSON generation, and answer judging.
+
+## 纯后端与自动化自测
+
+不依赖前端框架即可在本地运行真实游戏逻辑并自动对局：
+
+```sh
+npm run backend      # 纯后端 HTTP 服务（默认 http://localhost:8787）
+npm run selftest     # 打包真实逻辑并自动模拟两位玩家完整对局、断言规则
+```
+
+角色知识库位于 `lib/server/knowledge.ts`（守望先锋 + 街头霸王 6），可运行 `node scripts/fetch-wiki.mjs` 从 fandom wiki 抓取并合并词条。API 地址可通过 `DEEPSEEK_API_BASE` 覆盖。
