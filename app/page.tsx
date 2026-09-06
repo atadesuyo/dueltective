@@ -919,6 +919,14 @@ export default function Home() {
                 {room.ready.includes(room.you) ? '等待另一位侦探' : '开始吧'}
                 <ArrowRight />
               </Button>
+              <Button
+                variant="ghost"
+                className="cancel-button"
+                disabled={busy}
+                onClick={goBack}
+              >
+                <ChevronLeft /> 取消并退回首页
+              </Button>
             </DialogContent>
           </Dialog>
 
