@@ -75,4 +75,4 @@ CLOUDFLARE_D1_DATABASE_ID=你的database_id npm run deploy:cloudflare
 npx wrangler secret put DEEPSEEK_API_KEY
 ```
 
-部署脚本会依次：把 `database_id` 注入构建配置 → `vinext build` → 把 `drizzle/` 迁移应用到远程 D1 → `wrangler deploy`。部署完成后在 Cloudflare 控制台把自定义域名绑定到这个 Worker 即可。
+部署脚本会依次：把 `database_id` 注入构建配置 → `vinext build` → 把 `drizzle/` 迁移应用到远程 D1 → `wrangler deploy`。首次部署时 wrangler 会提示注册一个 `workers.dev` 子域（免费），注册后即可通过 `https://sites-project.<子域>.workers.dev` 访问；如需用你自己的域名，在 Cloudflare 控制台把该域名绑定到这个 Worker 即可。

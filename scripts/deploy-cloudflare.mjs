@@ -41,12 +41,18 @@ if (migrationFile) {
   const statements = readFileSync(join('drizzle', migrationFile), 'utf8')
     .split('--> statement-breakpoint')
     .map((s) => s.trim())
-    .filter(Boolean);
+    .filter(Boolean)
+    .map((s) => s.replace(/;\s*$/, ''))
+    .map((s) =>
+      s
+        .replace(/^CREATE TABLE\b/i, 'CREATE TABLE IF NOT EXISTS')
+        .replace(/^CREATE INDEX\b/i, 'CREATE INDEX IF NOT EXISTS'),
+    );
   const tmp = '.d1-migration.sql';
   writeFileSync(tmp, statements.join(';\n') + ';\n');
   try {
     run(
-      `npx wrangler d1 execute ${databaseId} --remote --file ${tmp}`,
+      `npx wrangler d1 execute DB --remote --config dist/server/wrangler.json --file ${tmp}`,
       '应用数据库迁移',
     );
   } finally {
