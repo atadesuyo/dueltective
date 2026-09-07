@@ -298,6 +298,7 @@ export async function answerQuestion(
 ): Promise<Answer> {
   const glossaryText = glossary[secret.category];
   const input = JSON.stringify({ history: history.slice(-60), question });
+  const searchInput = `谜底角色：${secret.name}${secret.aliases?.length ? `（${secret.aliases.slice(0, 4).join('、')}）` : ''}\n当前问题：${question}\n历史：${JSON.stringify(history.slice(-10))}`;
   const properties = {
     answer: { type: 'string', enum: ['YES', 'NO', 'UNKNOWN'] },
   };
@@ -310,8 +311,8 @@ export async function answerQuestion(
   // 第二步：知识库答不出（UNKNOWN），再用 DeepSeek 内置联网搜索查证
   try {
     const second = await structuredWithSearch(
-      `${baseSystem}\n请联网搜索社区讨论（Reddit、贴吧、论坛、wiki、人气数据）查证当前问题，尽量基于社区共识给出确定的YES或NO；只有确实查不到任何依据时才返回UNKNOWN。`,
-      input,
+      `${baseSystem}\n请联网搜索查证当前问题（Reddit、贴吧、论坛、wiki、人气数据、电竞选手资料）。对于"某选手是否擅长某角色"，请搜索"选手名 + 角色名"查证（例如"Fleta Tracer"），并按此判断：选手的位置（输出/辅助/重装）与该角色的定位一致、且该选手在职业比赛中使用过该角色，就判断"擅长"为YES；位置明显不符（如辅助选手 vs 输出角色）判断为NO。尽量基于搜索到的可靠资料给出确定的YES或NO；只有确实查不到任何依据时才返回UNKNOWN。`,
+      searchInput,
       properties,
       80,
     );
