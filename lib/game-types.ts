@@ -1,5 +1,5 @@
 export type Phase = 'lobby' | 'briefing' | 'ask' | 'priority' | 'finished';
-export type Answer = 'YES' | 'NO' | 'UNKNOWN';
+export type Answer = 'YES' | 'NO' | 'UNKNOWN' | 'REFUSE';
 export type AskPrivacy = 'public' | 'private-question' | 'private-answer';
 export type GameCategory = 'overwatch' | 'street-fighter-6' | 'pokemon-151';
 export const CATEGORY_LABELS: Record<GameCategory, string> = {

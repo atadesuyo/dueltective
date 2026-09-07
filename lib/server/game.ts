@@ -10,7 +10,8 @@ import type {
 import { db, GameError, hash, rateLimit, str } from './storage';
 import { aiReady, chooseSecret, answerQuestion } from './ai';
 import { demoSecret, demoAnswer, questionsFor, type Secret } from './demo';
-import { isCategory } from './rosters';
+import { isCategory, rosters } from './rosters';
+import { knowledge } from './knowledge';
 
 type StoredEvent = Event & {
   onlyFor?: number;
@@ -354,6 +355,26 @@ function normalizeGuess(value: string) {
     .toLowerCase()
     .replace(/[\s\p{P}\p{S}]/gu, '');
 }
+function isDirectAnswerGuess(text: string, category: GameCategory): boolean {
+  const q = text
+    .normalize('NFKC')
+    .toLowerCase()
+    .replace(/[？?！!。.\s]/g, '')
+    .replace(/^(?:这个角色|这个英雄|角色|英雄)/, '');
+  const m = q.match(/^(?:是不是|是否为|是否是|是)(.+?)(?:吗|吧)?$/);
+  if (!m) return false;
+  const target = m[1].replace(/^(?:叫|叫做|名为|的名字是)/, '');
+  const t = normalizeGuess(target);
+  if (!t) return false;
+  let count = 0;
+  for (const name of rosters[category]) {
+    const aliases = knowledge[category]?.[name]?.aliases ?? [];
+    if ([name, ...aliases].some((alias) => normalizeGuess(alias) === t)) {
+      count++;
+    }
+  }
+  return count === 1;
+}
 export async function act(
   code: string,
   session: string,
@@ -493,8 +514,9 @@ export async function act(
       s.deadline = null;
       delete s.turnRemaining;
     } else {
-      const answer =
-        s.mode === 'ai'
+      const answer = isDirectAnswerGuess(text, s.category)
+        ? 'REFUSE'
+        : s.mode === 'ai'
           ? await answerQuestion(
               s.secret!,
               text,

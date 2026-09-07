@@ -78,6 +78,7 @@ async function request<T = Room>(path: string, data?: object): Promise<T> {
 function answerCopy(answer?: string) {
   if (answer === 'YES') return '是的。';
   if (answer === 'NO') return '不是。';
+  if (answer === 'REFUSE') return '直接问谜底是不可以的哦。';
   return '这很难回答…';
 }
 
