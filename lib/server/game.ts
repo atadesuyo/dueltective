@@ -24,7 +24,7 @@ type State = {
   round: number;
   history: StoredEvent[];
   winner: number | null;
-  winReason?: 'correct' | 'out-of-lives';
+  winReason?: 'correct' | 'out-of-lives' | 'forfeit';
   mode: 'ai' | 'demo';
   secret?: Secret;
   pending?: { id: string; until: number };
@@ -122,10 +122,6 @@ function hydrate(s: State) {
           : null;
     changed = true;
   }
-  if (s.turnRemaining !== undefined) {
-    delete s.turnRemaining;
-    changed = true;
-  }
   for (const event of s.history) {
     if (event.answer === ('Yes' as string)) {
       event.answer = 'YES';
@@ -221,7 +217,7 @@ function nextTurn(s: State, now = Date.now()) {
 function finishRound(
   s: State,
   winner: number,
-  reason: 'correct' | 'out-of-lives',
+  reason: 'correct' | 'out-of-lives' | 'forfeit',
 ) {
   s.phase = 'finished';
   s.winner = winner;
@@ -231,6 +227,31 @@ function finishRound(
   s.ready = [];
   s.records[winner].wins++;
   s.records[1 - winner].losses++;
+}
+function initRound(s: State) {
+  s.round++;
+  s.turn = (s.round - 1) % 2;
+  s.phase = 'briefing';
+  s.history = [];
+  s.winner = null;
+  delete s.winReason;
+  s.ready = [];
+  s.lives = [3, 3];
+  s.abilities = freshAbilities();
+  s.avatars = freshAvatars();
+  s.deadline = null;
+  delete s.turnRemaining;
+}
+async function pickSecret(s: State) {
+  const secret =
+    s.mode === 'ai'
+      ? await chooseSecret(s.category, s.recentSecrets)
+      : demoSecret(s.category, s.recentSecrets);
+  s.secret = secret;
+  s.recentSecrets = [
+    secret.name,
+    ...s.recentSecrets.filter((name) => name !== secret.name),
+  ].slice(0, 2);
 }
 async function recover(input: Stored): Promise<Stored> {
   let r = input;
@@ -396,13 +417,40 @@ export async function act(
       name: str(input.name, 16, '昵称'),
       sessionHash: me,
     });
+    if (s.players.length < 2) {
+      await save(r);
+      return view(r, me);
+    }
+    // 两人到齐，自动进入规则确认（无需房主手动开始）
+    const pendingId = crypto.randomUUID();
+    s.pending = { id: pendingId, until: Date.now() + 40000 };
     await save(r);
-    return view(r, me);
+    try {
+      await pickSecret(s);
+      initRound(s);
+      delete s.pending;
+      await save(r);
+      return view(r, me);
+    } catch (error) {
+      const current = await read(code);
+      if (current.state.pending?.id === pendingId) {
+        delete current.state.pending;
+        await save(current);
+      }
+      throw error;
+    }
   }
   const who = member(r, me);
   if (input.revision !== r.revision)
     throw new GameError(409, '对局已更新，正在同步，请再试一次。');
   if (s.pending) throw new GameError(409, '正在处理上一次操作，请稍候。');
+  if (action === 'quit') {
+    if (s.phase !== 'lobby' && s.phase !== 'finished') {
+      finishRound(s, 1 - who, 'forfeit');
+      await save(r);
+    }
+    return view(r, me);
+  }
   if (action === 'start') {
     if (who !== 0) throw new GameError(403, '请等待房主开始。');
     if (s.phase !== 'lobby' || s.players.length !== 2)
@@ -492,27 +540,8 @@ export async function act(
   await save(r);
   try {
     if (action === 'start' || action === 'restart') {
-      const secret =
-        s.mode === 'ai'
-          ? await chooseSecret(s.category, s.recentSecrets)
-          : demoSecret(s.category, s.recentSecrets);
-      s.secret = secret;
-      s.recentSecrets = [
-        secret.name,
-        ...s.recentSecrets.filter((name) => name !== secret.name),
-      ].slice(0, 2);
-      s.round++;
-      s.turn = (s.round - 1) % 2;
-      s.phase = 'briefing';
-      s.history = [];
-      s.winner = null;
-      delete s.winReason;
-      s.ready = [];
-      s.lives = [3, 3];
-      s.abilities = freshAbilities();
-      s.avatars = freshAvatars();
-      s.deadline = null;
-      delete s.turnRemaining;
+      await pickSecret(s);
+      initRound(s);
     } else {
       const answer = isDirectAnswerGuess(text, s.category)
         ? 'REFUSE'

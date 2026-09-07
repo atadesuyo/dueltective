@@ -415,6 +415,18 @@ export default function Home() {
     history.replaceState(null, '', '/');
   };
 
+  const quit = () => {
+    const current = roomRef.current;
+    if (
+      current &&
+      current.phase !== 'lobby' &&
+      current.phase !== 'finished'
+    ) {
+      void action('quit').catch(() => {});
+    }
+    goBack();
+  };
+
   const copyValue = async (kind: 'code' | 'link') => {
     if (!room) return;
     const value =
@@ -466,10 +478,10 @@ export default function Home() {
             <Button
               variant="ghost"
               className="back-button"
-              onClick={goBack}
+              onClick={quit}
               disabled={busy}
             >
-              <ChevronLeft /> 大厅
+              <ChevronLeft /> 退出
             </Button>
             <div className="share-actions">
               <button type="button" onClick={() => void copyValue('code')}>
@@ -500,7 +512,7 @@ export default function Home() {
                   </h1>
                   <p>
                     {room.players.length === 2
-                      ? '房主可以发起这场对局。'
+                      ? '双方到齐，正在准备谜底…'
                       : '复制邀请网址，发给你的朋友。'}
                   </p>
                   <div className="waiting-detectives">
@@ -513,22 +525,6 @@ export default function Home() {
                       </div>
                     ))}
                   </div>
-                  <Button
-                    className="primary-button"
-                    disabled={
-                      locked || room.players.length < 2 || room.you !== 0
-                    }
-                    onClick={() => void run(() => action('start'))}
-                  >
-                    {locked
-                      ? '正在准备谜底…'
-                      : room.you !== 0
-                        ? '等待房主发起'
-                        : room.players.length < 2
-                          ? '等待朋友加入'
-                          : '发起对局'}
-                    <ArrowRight />
-                  </Button>
                 </div>
               ) : (
                 <>
@@ -939,12 +935,18 @@ export default function Home() {
               <span className="eyebrow">CASE CLOSED</span>
               <DialogTitle>
                 侦探 {room.players[room.winner ?? 0]?.name}{' '}
-                {room.winReason === 'correct' ? '推理成功' : '不战而胜'}
+                {room.winReason === 'correct'
+                  ? '推理成功'
+                  : room.winReason === 'forfeit'
+                    ? '对方弃权'
+                    : '不战而胜'}
               </DialogTitle>
               <DialogDescription>
                 {room.winReason === 'correct'
                   ? '一举猜中了谜底。'
-                  : '对方用完了全部回答机会。'}
+                  : room.winReason === 'forfeit'
+                    ? '对方中途退出，你获胜。'
+                    : '对方用完了全部回答机会。'}
               </DialogDescription>
               <p className="result-answer">
                 谜底是 <strong>{room.answer}</strong>

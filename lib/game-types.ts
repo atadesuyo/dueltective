@@ -46,6 +46,6 @@ export type Room = {
   deadline: number | null;
   lives: [number, number];
   abilities: [AbilityState, AbilityState];
-  winReason?: 'correct' | 'out-of-lives';
+  winReason?: 'correct' | 'out-of-lives' | 'forfeit';
   category: GameCategory;
 };
