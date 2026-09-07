@@ -682,3 +682,44 @@ export const genders: Record<GameCategory, Record<string, string>> = {
   },
   'pokemon-151': {},
 };
+
+/**
+ * 角色外观（发型/发色/服装等），用于准确回答"发型奇怪吗""是金发吗""服装暴露吗"这类问题。
+ */
+export const appearances: Record<GameCategory, Record<string, string>> = {
+  overwatch: {},
+  'street-fighter-6': {
+    Luke: '金色短发，肌肉发达，穿无袖上衣',
+    Jamie: '黑色长发扎辫，穿酒红色上衣',
+    Manon: '金色长发，穿优雅舞裙',
+    Kimberly: '黑色长发，穿忍术风运动服',
+    Marisa: '红色短发，肌肉发达，穿拳击装',
+    Lily: '深色长发，穿墨西哥风格服装',
+    JP: '灰白短发，穿西装',
+    Juri: '紫色长发，穿暴露的紧身装',
+    'Dee Jay': '黑色短发，穿鲜艳服装',
+    Cammy: '金色双辫，穿绿色紧身军装',
+    Ryu: '黑色短发，穿白色道服，戴白色头带',
+    'E. Honda': '相扑发髻，穿相扑装',
+    Blanka: '橙色头发，绿色皮肤，野兽造型',
+    Guile: '金色平头短发，穿军用服装',
+    Ken: '金色长发，穿红色无袖道服',
+    'Chun-Li': '黑色双发髻，穿蓝色旗袍',
+    Zangief: '红色短发与胡须，肌肉发达',
+    Dhalsim: '光头，戴骷髅项链',
+    Rashid: '深色短发，戴护目镜，穿中东风格服装',
+    'A.K.I.': '黑色长发，肤色苍白，穿黑色紧身衣',
+    Ed: '金色短发，穿黑色服装',
+    Akuma: '红色竖立长发，深色皮肤',
+    'M. Bison': '黑色短发，穿军装',
+    Terry: '金色长发，戴红色帽子，穿红色夹克',
+    Mai: '棕色长发马尾，穿红色和服',
+    Elena: '白色短发，穿非洲风格服装',
+    Sagat: '光头，戴眼罩，肌肉发达',
+    'C. Viper': '红色长发，穿紧身特工服',
+    Alex: '金色短发，肌肉发达',
+    Ingrid: '金色长发，穿白色服装',
+    Yasmine: '深色皮肤，黑色头发，穿学生风服装',
+  },
+  'pokemon-151': {},
+};
